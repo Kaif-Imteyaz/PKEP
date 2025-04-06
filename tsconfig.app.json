@@ -13,7 +13,8 @@
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
+    "noEmit": false,   
+    "outDir": "dist",  //Set output directory
     "jsx": "react-jsx",
 
     /* Linting */
@@ -24,4 +25,3 @@
   },
   "include": ["src"]
 }
-
