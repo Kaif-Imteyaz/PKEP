@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useEffect, useState } from "react"
 import { Auth } from "./components/Auth"
 import { Layout } from "./components/Layout"
@@ -52,7 +53,9 @@ export default function App() {
         {currentView === "dashboard" && <Dashboard />}
         {currentView === "reflection" && <ReflectionBoard />}
         {currentView === "resources" && <ResourceHub />}
+        {/* 
         {currentView === "meetings" && <MeetingScheduler />}
+        */}
       </Layout>
 
       {/* WhatsApp Button */}

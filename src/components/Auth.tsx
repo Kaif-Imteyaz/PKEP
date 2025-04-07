@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { useState } from "react"
 import { supabase } from "../lib/supabase"
 import { MessageSquareText } from "lucide-react"

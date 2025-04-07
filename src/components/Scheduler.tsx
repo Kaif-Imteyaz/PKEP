@@ -1,3 +1,6 @@
+"use client"
+
+import React from "react"
 import { Calendar as CalendarIcon, Clock, Users } from "lucide-react"
 
 export function Scheduler() {

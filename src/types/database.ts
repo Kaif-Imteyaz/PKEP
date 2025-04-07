@@ -1,24 +1,25 @@
-export type Meeting = {
+export interface Meeting {
   id: string
   name: string
   agenda: string
-  links_documents: string
-  performance_metrics?: string
+  links?: string | null
+  date: string
+  time: string
   location: string
-  meeting_date: string
-  meeting_time: string
-  created_by: string
+  status: "scheduled" | "cancelled"
   created_at: string
-  updated_at: string
-  is_cancelled: boolean
+  created_by: string
+  // Frontend-only properties for compatibility
+  meeting_date?: string
+  meeting_time?: string
+  links_documents?: string
+  is_cancelled?: boolean
 }
 
-export type MeetingParticipant = {
-  id: string
+export interface MeetingParticipant {
   meeting_id: string
   user_id: string
   status: "pending" | "accepted" | "declined"
-  created_at: string
 }
 
 export type UserSession = {
@@ -32,26 +33,22 @@ export type UserSession = {
 
 export type BuddyPair = {
   id: string
-  user_id: string
-  buddy_id: string
+  officer1_id: string
+  officer2_id: string
   created_at: string
+  // Frontend compatibility properties
+  buddy_id?: string
+  buddy?: any
 }
 
-export type ChatMessage = {
+export interface Note {
   id: string
   content: string
-  sender: "user" | "bot"
-  timestamp: string
-  metadata?: any
-}
-
-export type Note = {
-  id: string
-  type: "rose" | "thorn" | "bud"
-  content: string
+  type: string
   created_at: string
-  user_id: string
+  created_by: string
   edited_at?: string
+  user_id: string
 }
 
 export type DashboardMetric = {
@@ -68,5 +65,13 @@ export type HistoricalMetric = {
   metric_type: string
   month: string
   value: number
+}
+
+export interface ChatMessage {
+  id: string
+  content: string
+  sender: "user" | "bot"
+  timestamp: string
+  metadata?: any
 }
 

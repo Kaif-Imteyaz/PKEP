@@ -1,8 +1,8 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { useState, useEffect } from "react"
-import { CalendarIcon, Clock, MapPin, FileText, Trash2, Edit, Plus, X } from "lucide-react"
+import { CalendarIcon, Clock, MapPin, FileText, Trash2, Edit, Plus, X, Calendar } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import type { Meeting } from "../types/database"
 import * as supabaseService from "../services/supabaseService"
@@ -11,6 +11,7 @@ import { format } from "date-fns"
 export function MeetingScheduler() {
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
@@ -28,10 +29,16 @@ export function MeetingScheduler() {
   useEffect(() => {
     const fetchUserAndMeetings = async () => {
       try {
+        setLoading(true)
+        setError(null)
+
         const {
           data: { user },
         } = await supabase.auth.getUser()
-        if (!user) return
+        if (!user) {
+          setError("Please sign in to view meetings")
+          return
+        }
 
         setUserId(user.id)
 
@@ -46,29 +53,43 @@ export function MeetingScheduler() {
         setMeetings(meetingsData || [])
 
         // Subscribe to real-time updates
-        const subscription = supabaseService.subscribeToMeetings(user.id, (payload) => {
+        const subscription = supabaseService.subscribeToMeetings(user.id || "", (payload) => {
           if (payload.eventType === "INSERT") {
-            setMeetings((prev) => [...prev, payload.new])
+            const newMeeting = {
+              ...payload.new,
+              meeting_date: payload.new.date,
+              meeting_time: payload.new.time,
+              links_documents: payload.new.links,
+              is_cancelled: payload.new.status === "cancelled"
+            } as Meeting
+            setMeetings((prev) => [...prev, newMeeting])
           } else if (payload.eventType === "UPDATE") {
-            setMeetings((prev) => prev.map((meeting) => (meeting.id === payload.new.id ? payload.new : meeting)))
+            const updatedMeeting = {
+              ...payload.new,
+              meeting_date: payload.new.date,
+              meeting_time: payload.new.time,
+              links_documents: payload.new.links,
+              is_cancelled: payload.new.status === "cancelled"
+            } as Meeting
+            setMeetings((prev) => prev.map((meeting) => (meeting.id === updatedMeeting.id ? updatedMeeting : meeting)))
           } else if (payload.eventType === "DELETE") {
             setMeetings((prev) => prev.filter((meeting) => meeting.id !== payload.old.id))
           }
         })
-
-        setLoading(false)
 
         return () => {
           subscription.unsubscribe()
         }
       } catch (error) {
         console.error("Error fetching meetings:", error)
+        setError("Failed to load meetings. Please try again later.")
+      } finally {
         setLoading(false)
       }
     }
 
     fetchUserAndMeetings()
-  }, [])
+  }, [userId])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -83,17 +104,28 @@ export function MeetingScheduler() {
     try {
       if (editingMeetingId) {
         // Update existing meeting
-        await supabaseService.updateMeeting(editingMeetingId, formData)
+        await supabaseService.updateMeeting(editingMeetingId, {
+          name: formData.name,
+          agenda: formData.agenda,
+          links_documents: formData.links_documents,
+          meeting_date: formData.meeting_date,
+          meeting_time: formData.meeting_time,
+          location: formData.location,
+        })
       } else {
         // Create new meeting
         const meeting = await supabaseService.createMeeting({
-          ...formData,
+          name: formData.name,
+          agenda: formData.agenda,
+          links: formData.links_documents,
+          date: formData.meeting_date,
+          time: formData.meeting_time,
+          location: formData.location,
           created_by: userId,
-          performance_metrics: "",
         })
 
         // Add buddy as participant if requested
-        if (inviteBuddy && buddyId) {
+        if (inviteBuddy && buddyId && meeting) {
           await supabaseService.addMeetingParticipant(meeting.id, buddyId)
         }
       }
@@ -119,10 +151,10 @@ export function MeetingScheduler() {
     setFormData({
       name: meeting.name,
       agenda: meeting.agenda,
-      links_documents: meeting.links_documents || "",
+      links_documents: meeting.links || "",
       location: meeting.location,
-      meeting_date: meeting.meeting_date,
-      meeting_time: meeting.meeting_time,
+      meeting_date: meeting.date,
+      meeting_time: meeting.time,
     })
     setEditingMeetingId(meeting.id)
     setShowForm(true)
@@ -140,21 +172,106 @@ export function MeetingScheduler() {
   }
 
   const upcomingMeetings = meetings
-    .filter((meeting) => new Date(meeting.meeting_date) >= new Date() && !meeting.is_cancelled)
-    .sort((a, b) => new Date(a.meeting_date).getTime() - new Date(b.meeting_date).getTime())
+    .filter((meeting) => new Date(meeting.date) >= new Date() && meeting.status !== "cancelled")
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   const pastMeetings = meetings
-    .filter((meeting) => new Date(meeting.meeting_date) < new Date() && !meeting.is_cancelled)
-    .sort((a, b) => new Date(b.meeting_date).getTime() - new Date(a.meeting_date).getTime())
+    .filter((meeting) => new Date(meeting.date) < new Date() && meeting.status !== "cancelled")
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   const canceledMeetings = meetings
-    .filter((meeting) => meeting.is_cancelled)
-    .sort((a, b) => new Date(b.meeting_date).getTime() - new Date(a.meeting_date).getTime())
+    .filter((meeting) => meeting.status === "cancelled")
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 space-y-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Meeting Scheduler</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              View, schedule, and manage your meetings
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setFormData({
+                name: "",
+                agenda: "",
+                links_documents: "",
+                location: "",
+                meeting_date: "",
+                meeting_time: "",
+              })
+              setEditingMeetingId(null)
+              setShowForm(true)
+            }}
+            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Schedule Meeting
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 space-y-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Meeting Scheduler</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              View, schedule, and manage your meetings
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setFormData({
+                name: "",
+                agenda: "",
+                links_documents: "",
+                location: "",
+                meeting_date: "",
+                meeting_time: "",
+              })
+              setEditingMeetingId(null)
+              setShowForm(true)
+            }}
+            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Schedule Meeting
+          </button>
+        </div>
+
+        <div className="text-center py-8">
+          <div className="text-red-600 mb-4">{error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-gray-900">Meeting Scheduler</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Meeting Scheduler</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            View, schedule, and manage your meetings
+          </p>
+        </div>
         <button
           onClick={() => {
             setFormData({
@@ -168,26 +285,118 @@ export function MeetingScheduler() {
             setEditingMeetingId(null)
             setShowForm(true)
           }}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center space-x-2"
+          className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
-          <Plus className="h-5 w-5" />
-          <span>Schedule Meeting</span>
+          <Plus className="h-5 w-5 mr-2" />
+          Schedule Meeting
         </button>
       </div>
 
+      {loading ? (
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : error ? (
+        <div className="text-center py-8">
+          <div className="text-red-600 mb-4">{error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {upcomingMeetings.length > 0 && (
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Upcoming Meetings ({upcomingMeetings.length})
+              </h3>
+              <div className="space-y-4">
+                {upcomingMeetings.map((meeting) => (
+                  <MeetingCard
+                    key={meeting.id}
+                    meeting={meeting}
+                    isPast={false}
+                    isCanceled={false}
+                    onEdit={() => handleEdit(meeting)}
+                    onCancel={(id) => handleCancel(id)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {pastMeetings.length > 0 && (
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Past Meetings ({pastMeetings.length})
+              </h3>
+              <div className="space-y-4">
+                {pastMeetings.map((meeting) => (
+                  <MeetingCard
+                    key={meeting.id}
+                    meeting={meeting}
+                    isPast={true}
+                    isCanceled={false}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {canceledMeetings.length > 0 && (
+            <section>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Canceled Meetings ({canceledMeetings.length})
+              </h3>
+              <div className="space-y-4">
+                {canceledMeetings.map((meeting) => (
+                  <MeetingCard
+                    key={meeting.id}
+                    meeting={meeting}
+                    isPast={false}
+                    isCanceled={true}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {meetings.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-400 mb-4">
+                <Calendar className="h-12 w-12 mx-auto" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings found</h3>
+              <p className="text-gray-500">
+                Click the "Schedule Meeting" button to create your first meeting
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Meeting Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">{editingMeetingId ? "Edit Meeting" : "Schedule New Meeting"}</h3>
-              <button onClick={() => setShowForm(false)} className="p-1 hover:bg-gray-100 rounded-full">
-                <X className="h-6 w-6 text-gray-500" />
+              <h3 className="text-lg font-semibold text-gray-900">
+                {editingMeetingId ? "Edit Meeting" : "Schedule New Meeting"}
+              </h3>
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   Meeting Name
                 </label>
                 <input
@@ -197,12 +406,12 @@ export function MeetingScheduler() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label htmlFor="agenda" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="agenda" className="block text-sm font-medium text-gray-700">
                   Agenda
                 </label>
                 <textarea
@@ -210,61 +419,13 @@ export function MeetingScheduler() {
                   name="agenda"
                   value={formData.agenda}
                   onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-vertical"
                   rows={3}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
 
               <div>
-                <label htmlFor="links_documents" className="block text-sm font-medium text-gray-700 mb-1">
-                  Links & Documents (Optional)
-                </label>
-                <input
-                  type="text"
-                  id="links_documents"
-                  name="links_documents"
-                  value={formData.links_documents}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Add links to relevant documents or resources"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="meeting_date" className="block text-sm font-medium text-gray-700 mb-1">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    id="meeting_date"
-                    name="meeting_date"
-                    value={formData.meeting_date}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="meeting_time" className="block text-sm font-medium text-gray-700 mb-1">
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    id="meeting_time"
-                    name="meeting_time"
-                    value={formData.meeting_time}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="location" className="block text-sm font-medium text-gray-700">
                   Location
                 </label>
                 <input
@@ -274,8 +435,55 @@ export function MeetingScheduler() {
                   value={formData.location}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="e.g., Webex, Office Room 101, etc."
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="meeting_date" className="block text-sm font-medium text-gray-700">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    id="meeting_date"
+                    name="meeting_date"
+                    value={formData.meeting_date}
+                    onChange={handleInputChange}
+                    required
+                    min={new Date().toISOString().split("T")[0]}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="meeting_time" className="block text-sm font-medium text-gray-700">
+                    Time
+                  </label>
+                  <input
+                    type="time"
+                    id="meeting_time"
+                    name="meeting_time"
+                    value={formData.meeting_time}
+                    onChange={handleInputChange}
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="links_documents" className="block text-sm font-medium text-gray-700">
+                  Meeting Documents URL
+                </label>
+                <input
+                  type="url"
+                  id="links_documents"
+                  name="links_documents"
+                  value={formData.links_documents}
+                  onChange={handleInputChange}
+                  placeholder="https://"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
 
@@ -283,84 +491,36 @@ export function MeetingScheduler() {
                 <div className="flex items-center">
                   <input
                     type="checkbox"
-                    id="invite_buddy"
+                    id="inviteBuddy"
                     checked={inviteBuddy}
-                    onChange={() => setInviteBuddy(!inviteBuddy)}
+                    onChange={(e) => setInviteBuddy(e.target.checked)}
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="invite_buddy" className="ml-2 block text-sm text-gray-700">
+                  <label htmlFor="inviteBuddy" className="ml-2 block text-sm text-gray-700">
                     Invite my buddy to this meeting
                   </label>
                 </div>
               )}
 
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                  {editingMeetingId ? "Update Meeting" : "Schedule Meeting"}
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  {editingMeetingId ? "Save Changes" : "Schedule Meeting"}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-      <div className="space-y-6">
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
-            <p className="mt-2 text-gray-600">Loading meetings...</p>
-          </div>
-        ) : (
-          <>
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Upcoming Meetings</h3>
-              {upcomingMeetings.length > 0 ? (
-                <div className="space-y-4">
-                  {upcomingMeetings.map((meeting) => (
-                    <MeetingCard key={meeting.id} meeting={meeting} onEdit={handleEdit} onCancel={handleCancel} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 py-4">No upcoming meetings scheduled.</p>
-              )}
-            </div>
-
-            {pastMeetings.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Past Meetings</h3>
-                <div className="space-y-4">
-                  {pastMeetings.slice(0, 3).map((meeting) => (
-                    <MeetingCard key={meeting.id} meeting={meeting} isPast />
-                  ))}
-                  {pastMeetings.length > 3 && (
-                    <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
-                      View all past meetings
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {canceledMeetings.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Canceled Meetings</h3>
-                <div className="space-y-4">
-                  {canceledMeetings.slice(0, 3).map((meeting) => (
-                    <MeetingCard key={meeting.id} meeting={meeting} isCanceled />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
     </div>
   )
 }
@@ -374,7 +534,7 @@ interface MeetingCardProps {
 }
 
 function MeetingCard({ meeting, isPast, isCanceled, onEdit, onCancel }: MeetingCardProps) {
-  const formattedDate = format(new Date(meeting.meeting_date), "MMMM d, yyyy")
+  const formattedDate = format(new Date(meeting.date), "MMMM d, yyyy")
 
   return (
     <div className={`border rounded-lg p-4 ${isCanceled ? "bg-gray-50 border-gray-200" : "bg-white"}`}>
@@ -408,7 +568,7 @@ function MeetingCard({ meeting, isPast, isCanceled, onEdit, onCancel }: MeetingC
 
         <div className="flex items-center text-sm text-gray-500">
           <Clock className="h-4 w-4 mr-2" />
-          <span>{meeting.meeting_time}</span>
+          <span>{meeting.time}</span>
         </div>
 
         <div className="flex items-center text-sm text-gray-500">

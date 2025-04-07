@@ -65,16 +65,29 @@ export const processMessage = async (
         timestamp: new Date().toISOString(),
       })
     }
-  } else if (lowerMessage.includes("search") || lowerMessage.includes("find")) {
+  } else if (lowerMessage.includes("search") && lowerMessage.includes("reflection")) {
     responses.push({
       id: Date.now().toString(),
-      content: "What would you like to search for?",
+      content: "What would you like to search for in the reflections? Enter a keyword or phrase.",
       sender: "bot",
       timestamp: new Date().toISOString(),
     })
     newState = {
       currentProcess: "search",
       step: 1,
+      searchType: "reflections"
+    }
+  } else if (lowerMessage.includes("search") || lowerMessage.includes("find")) {
+    responses.push({
+      id: Date.now().toString(),
+      content: "What would you like to search for?\n1. Reflections\n2. Resources",
+      sender: "bot",
+      timestamp: new Date().toISOString(),
+    })
+    newState = {
+      currentProcess: "search",
+      step: 1,
+      searchType: "menu"
     }
   } else if (
     lowerMessage.includes("reflection") ||
@@ -417,37 +430,31 @@ const handleSearch = async (
   let newState = { ...state }
 
   try {
-    const results = await supabaseService.searchResources(message)
-
-    if (results.notes.length === 0 && results.meetings.length === 0) {
+    // Search for reflections
+    const reflections = await supabaseService.searchReflections(message, userId)
+    
+    if (reflections.length === 0) {
       responses.push({
         id: Date.now().toString(),
-        content: `I couldn't find any results for "${message}". Would you like to try a different search term?`,
+        content: `I couldn't find any reflections matching "${message}". Would you like to try a different search term?`,
         sender: "bot",
         timestamp: new Date().toISOString(),
       })
     } else {
-      let resultMessage = `Here are the search results for "${message}":\n\n`
+      let resultMessage = `Here are the reflections matching "${message}":\n\n`
+      
+      reflections.forEach((reflection, index) => {
+        const type = reflection.type.toUpperCase()
+        const preview = reflection.content.length > 100 
+          ? reflection.content.substring(0, 100) + "..."
+          : reflection.content
+        const date = new Date(reflection.created_at).toLocaleDateString()
+        
+        resultMessage += `${index + 1}. ${type} (${date})\n${preview}\n\n`
+      })
 
-      if (results.notes.length > 0) {
-        resultMessage += "Reflections:\n"
-        results.notes.slice(0, 3).forEach((note, index) => {
-          resultMessage += `${index + 1}. ${note.type.toUpperCase()}: ${note.content.substring(0, 50)}${note.content.length > 50 ? "..." : ""}\n`
-        })
-        if (results.notes.length > 3) {
-          resultMessage += `...and ${results.notes.length - 3} more reflections\n`
-        }
-        resultMessage += "\n"
-      }
-
-      if (results.meetings.length > 0) {
-        resultMessage += "Meetings:\n"
-        results.meetings.slice(0, 3).forEach((meeting, index) => {
-          resultMessage += `${index + 1}. ${meeting.name} - ${new Date(meeting.meeting_date).toLocaleDateString()}\n`
-        })
-        if (results.meetings.length > 3) {
-          resultMessage += `...and ${results.meetings.length - 3} more meetings\n`
-        }
+      if (reflections.length > 5) {
+        resultMessage += `Found ${reflections.length} reflections in total. Showing the first 5 most recent ones.`
       }
 
       responses.push({
@@ -455,11 +462,15 @@ const handleSearch = async (
         content: resultMessage,
         sender: "bot",
         timestamp: new Date().toISOString(),
+        metadata: { reflections: reflections.slice(0, 5) }
       })
-    }
 
-    // Reset state
-    newState = {}
+      newState = {
+        currentProcess: "viewReflections",
+        step: 1,
+        reflections: reflections.slice(0, 5)
+      }
+    }
   } catch (error) {
     responses.push({
       id: Date.now().toString(),
@@ -467,8 +478,6 @@ const handleSearch = async (
       sender: "bot",
       timestamp: new Date().toISOString(),
     })
-    // Reset state
-    newState = {}
   }
 
   return { messages: responses, newState }
@@ -536,6 +545,7 @@ const handleAddReflection = async (
           type: state.reflectionType,
           content: message,
           user_id: userId,
+          created_by: userId
         })
 
         responses.push({

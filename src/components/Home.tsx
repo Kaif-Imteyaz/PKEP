@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useEffect, useState } from "react"
 import { Calendar, Users, ArrowRight, FileText, BarChart, Clock, CalendarDays } from "lucide-react"
 import { supabase } from "../lib/supabase"

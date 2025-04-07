@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { useState } from "react"
 import { Menu, LogOut, Home, BookOpen, ClipboardList, X, LayoutDashboard, Calendar } from "lucide-react"
 import { supabase } from "../lib/supabase"
@@ -24,7 +24,7 @@ export function Layout({
   const navItems = [
     { id: "home", label: "Home", icon: Home },
     { id: "dashboard", label: "Service Metrics", icon: LayoutDashboard },
-    { id: "meetings", label: "Meeting Scheduler", icon: Calendar },
+    // { id: "meetings", label: "Meeting Scheduler", icon: Calendar },
     { id: "reflection", label: "Reflection Board", icon: ClipboardList },
     { id: "resources", label: "Resource Hub", icon: BookOpen },
   ]

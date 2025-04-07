@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useState, useEffect } from "react"
 import { Calendar, FileText, Clock, TrendingUp, TrendingDown, Award, HelpCircle } from "lucide-react"
 import { supabase } from "../lib/supabase"
