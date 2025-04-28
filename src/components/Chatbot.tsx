@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import { MessageSquare, X, Send, Calendar, Clock, Users, MapPin, FileText } from "lucide-react"
+import { MessageSquare, X, Send, Calendar, Clock, Users, MapPin, FileText } from 'lucide-react'
 import { supabase } from "../lib/supabase"
 import { v4 as uuidv4 } from "uuid"
 import { meetingService, type Meeting } from "../services/meetingService"
@@ -628,7 +628,7 @@ export function Chatbot() {
 
           if (message === "1") {
             endDate.setDate(today.getDate() + 7)
-    } else {
+          } else {
             startDate.setDate(today.getDate() + 7)
             endDate.setDate(today.getDate() + 14)
           }
@@ -737,25 +737,25 @@ export function Chatbot() {
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center space-x-2 px-4 py-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
+          className="flex items-center space-x-2 px-4 py-3 bg-gradient-to-r from-primary-700 to-primary-600 text-white rounded-full shadow-lg hover:from-primary-800 hover:to-primary-700 transition-colors"
         >
           <MessageSquare className="h-5 w-5" />
           <span>Meeting Assistant</span>
         </button>
       ) : (
         <div className="bg-white rounded-lg shadow-xl w-96 h-[600px] flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
+          <div className="p-4 border-b bg-gradient-to-r from-primary-700 to-primary-600 flex items-center justify-between rounded-t-lg">
             <div className="flex items-center space-x-2">
-              <MessageSquare className="h-5 w-5 text-indigo-600" />
-              <h3 className="font-medium">Meeting Assistant</h3>
+              <MessageSquare className="h-5 w-5 text-white" />
+              <h3 className="font-medium text-white">Meeting Assistant</h3>
             </div>
-            <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
-              <X className="h-4 w-4 text-gray-500" />
-              </button>
+            <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-primary-600/50 rounded-full text-white">
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto">
-                {messages.map((message) => (
+            {messages.map((message) => (
               <div
                 key={message.id}
                 className={`mb-4 ${
@@ -765,19 +765,19 @@ export function Chatbot() {
                 <div
                   className={`inline-block p-3 rounded-lg ${
                     message.type === "user"
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-gradient-to-r from-primary-600 to-primary-700 text-white"
                       : "bg-gray-100 text-gray-900"
                   }`}
                 >
                   {message.content}
-                    </div>
+                </div>
                 {message.buttons && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {message.buttons.map((button) => (
                       <button
                         key={button.id}
                         onClick={() => handleButtonClick(button)}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                        className="px-3 py-1 bg-primary-50 text-primary-700 rounded-md hover:bg-primary-100 border border-primary-200 transition-colors"
                       >
                         {button.text}
                       </button>
@@ -786,30 +786,29 @@ export function Chatbot() {
                 )}
               </div>
             ))}
-                <div ref={messagesEndRef} />
-              </div>
+            <div ref={messagesEndRef} />
+          </div>
 
-              <div className="p-4 border-t">
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
+          <div className="p-4 border-t">
+            <div className="flex space-x-2">
+              <input
+                type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSend()}
-                    placeholder="Type a message..."
-                className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <button
+                placeholder="Type a message..."
+                className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              <button
                 onClick={handleSend}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                  >
-                    <Send className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
+                className="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
   )
 }
-

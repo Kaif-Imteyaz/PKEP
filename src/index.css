@@ -1,4 +1,182 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply text-gray-800 bg-gray-50;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  ::selection {
+    @apply bg-primary-100 text-primary-700;
+  }
+}
+
+@layer components {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-700 text-white hover:bg-primary-800 focus-ring;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-600 text-white hover:bg-secondary-700 focus-ring;
+  }
+  
+  .btn-outline {
+    @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-ring;
+  }
+  
+  .input {
+    @apply block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm 
+    placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 
+    sm:text-sm;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-card;
+  }
+  
+  /* Enhanced card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  /* Shimmer loading effect */
+  .shimmer {
+    @apply relative overflow-hidden bg-gray-100;
+  }
+  
+  .shimmer::after {
+    content: '';
+    @apply absolute top-0 left-0 h-full w-full;
+    background: linear-gradient(90deg, 
+      rgba(255,255,255,0) 0%, 
+      rgba(255,255,255,0.8) 50%, 
+      rgba(255,255,255,0) 100%);
+    animation: shimmer 1.5s infinite;
+  }
+  
+  /* Badge with glow effect */
+  .badge-glow {
+    animation: glow 2s infinite alternate;
+  }
+  
+  /* Frosted glass effect */
+  .frosted-glass {
+    @apply backdrop-blur-sm bg-white/50;
+    border: 1px solid rgba(255, 255, 255, 0.125);
+  }
+}
+
+/* Custom animations */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-150%);
+  }
+  100% {
+    transform: translateX(150%);
+  }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideRight {
+  0% { transform: translateX(-20px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes scale {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(30, 62, 106, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(30, 62, 106, 0.8);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes dashOffset {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Add animation classes */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+  pointer-events: auto !important;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out forwards;
+  pointer-events: auto !important;
+}
+
+.animate-slide-right {
+  animation: slideRight 0.4s ease-out forwards;
+  pointer-events: auto !important;
+}
+
+.animate-scale {
+  animation: scale 0.3s ease-in-out forwards;
+  pointer-events: auto !important;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: auto !important;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+  pointer-events: auto !important;
+}

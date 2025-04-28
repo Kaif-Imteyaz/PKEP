@@ -13,6 +13,7 @@ import { WhatsAppButton } from "./components/WhatsAppButton"
 import type { Session } from "@supabase/supabase-js"
 import { Chatbot } from "./components/Chatbot"
 import { MeetingScheduler } from "./components/MeetingScheduler"
+import { WhatsAppSettings } from "./components/WhatsAppSettings"
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -53,6 +54,9 @@ export default function App() {
         {currentView === "dashboard" && <Dashboard />}
         {currentView === "reflection" && <ReflectionBoard />}
         {currentView === "resources" && <ResourceHub />}
+        {currentView === "whatsapp" && <WhatsAppSettings />}
+        {/* Uncomment the following line to enable the Meeting Scheduler */}
+        {/* {currentView === "meetings" && <MeetingScheduler />} */}
         {/* 
         {currentView === "meetings" && <MeetingScheduler />}
         */}
