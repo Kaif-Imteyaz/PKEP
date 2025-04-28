@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { MessageSquare, X, Send, Calendar, Clock, Users, MapPin, FileText } from 'lucide-react'
 import { supabase } from "../lib/supabase"
-import { v4 as uuidv4 } from "uuid"
+import { v4 as uuidv4 } from 'uuid'
 import { meetingService, type Meeting } from "../services/meetingService"
 import { schedulingService, type TimeSlot } from "../services/schedulingService"
 import { reflectionService, type ReflectionType, type Reflection } from "../services/reflectionService"
