@@ -24,7 +24,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-draggable": "^4.4.6",
-    "react-hot-toast": "^2.5.2"
+    "react-hot-toast": "^2.5.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
@@ -33,6 +34,7 @@
     "@types/next": "^8.0.7",
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.6",
+    "@types/uuid": "^10.0.0",
     "@vercel/node": "^2.3.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",

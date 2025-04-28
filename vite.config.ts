@@ -6,8 +6,12 @@ export default defineConfig({
   base: "./", // Ensures correct asset paths
   build: {
     outDir: "dist", // Default is "dist"
+    rollupOptions: {
+      external: ["uuid"], 
+    },
   },
   optimizeDeps: {
     exclude: ["lucide-react"],
+    include: ["uuid"], 
   },
 })
