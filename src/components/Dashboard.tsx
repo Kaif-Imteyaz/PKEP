@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Users, ArrowRight, FileText, BarChart, Clock, TrendingUp, TrendingDown, Award, HelpCircle, MapPin, Filter, ChevronDown, Download, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
-import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
+import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 
 type UserProfile = {
   name: string;
