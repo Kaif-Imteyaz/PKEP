@@ -315,7 +315,7 @@ export function Layout({ children, onViewChange }: { children: React.ReactNode; 
           
           <div className="mt-8 border-t border-gray-200 pt-6 text-center">
             <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} Punjab Knowledge Exchange Platform. All rights reserved.
+              &copy; {new Date().getFullYear()} Peer Knowledge Exchange Platform. All rights reserved.
             </p>
           </div>
         </div>
