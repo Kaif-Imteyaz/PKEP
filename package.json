@@ -25,6 +25,7 @@
     "react-dom": "^18.2.0",
     "react-draggable": "^4.4.6",
     "react-hot-toast": "^2.5.2",
+    "recharts": "^2.15.3",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
