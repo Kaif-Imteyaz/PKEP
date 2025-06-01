@@ -13,8 +13,6 @@ import {
   X,
   ChevronDown,
   ArrowLeft,
-  Download,
-  Share2,
   Bookmark,
   Tag,
   Calendar,
@@ -30,6 +28,7 @@ type Article = {
   district?: string
   department?: string
   subThemes?: string[]
+  saved?: boolean
 }
 
 type Category = {
@@ -40,132 +39,22 @@ type Category = {
   articles: Article[]
 }
 
-type Blog = {
-  id: string
-  title: string
-  content: string
-  excerpt: string
-  date: string
-  readTime: string
-  tags: string[]
-  district?: string
-  department?: string
-  subThemes?: string[]
-}
-
-// Sample blogs data
-const blogs: Blog[] = [
-  {
-    id: "blog-1",
-    title: "Improving Citizen Services in Rural Punjab",
-    excerpt:
-      "Strategies for enhancing service delivery in rural areas through technology adoption and process optimization.",
-    content: `<h2>Improving Citizen Services in Rural Punjab</h2>
-      <p>Rural areas in Punjab face unique challenges in service delivery. This article explores effective strategies that have been implemented across various districts.</p>
-      <p>Key approaches include:</p>
-      <ul>
-        <li>Mobile service delivery units</li>
-        <li>Digital kiosks in village centers</li>
-        <li>Training local representatives as service facilitators</li>
-        <li>Simplified application processes for common services</li>
-      </ul>
-      <p>Case studies from Moga, Bathinda, and Faridkot demonstrate significant improvements in citizen satisfaction and service efficiency.</p>`,
-    date: "April 15, 2025",
-    readTime: "8 min read",
-    tags: ["Rural Development", "Technology", "Service Delivery"],
-    district: "Bathinda",
-    department: "Rural Development & Panchayats",
-    subThemes: ["Technology", "Governance"],
-  },
-  {
-    id: "blog-2",
-    title: "Digital Transformation in Revenue Department",
-    excerpt:
-      "How the Revenue Department in Ludhiana implemented digital solutions to streamline land record management.",
-    content: `<h2>Digital Transformation in Revenue Department</h2>
-      <p>The Revenue Department in Ludhiana has undergone a significant digital transformation over the past two years. This case study examines the implementation process and outcomes.</p>
-      <p>The transformation included:</p>
-      <ul>
-        <li>Digitization of historical land records</li>
-        <li>Implementation of blockchain for property transactions</li>
-        <li>Mobile applications for field officers</li>
-        <li>Integrated dashboard for monitoring service delivery</li>
-      </ul>
-      <p>Results show a 60% reduction in processing time and 40% increase in revenue collection efficiency.</p>`,
-    date: "March 28, 2025",
-    readTime: "12 min read",
-    tags: ["Digital Transformation", "Land Records", "Process Optimization"],
-    district: "Ludhiana",
-    department: "Revenue",
-    subThemes: ["Technology", "Management"],
-  },
-  {
-    id: "blog-3",
-    title: "Collaborative Governance Model in Amritsar",
-    excerpt: "A case study on inter-departmental collaboration for integrated urban development in Amritsar.",
-    content: `<h2>Collaborative Governance Model in Amritsar</h2>
-      <p>Amritsar has pioneered a collaborative governance model that brings together multiple departments for integrated urban development. This article details the framework and implementation.</p>
-      <p>The model features:</p>
-      <ul>
-        <li>Joint planning committees with representatives from all key departments</li>
-        <li>Shared digital platforms for project management</li>
-        <li>Unified citizen interface for all government services</li>
-        <li>Regular coordination meetings with defined accountability</li>
-      </ul>
-      <p>The approach has resulted in faster project completion, reduced redundancies, and improved citizen satisfaction.</p>`,
-    date: "February 10, 2025",
-    readTime: "15 min read",
-    tags: ["Urban Development", "Collaboration", "Governance"],
-    district: "Amritsar",
-    department: "Local Government",
-    subThemes: ["Governance", "Management"],
-  },
-  {
-    id: "blog-4",
-    title: "Agricultural Innovation in Patiala",
-    excerpt:
-      "How the Agriculture Department in Patiala is promoting sustainable farming practices through technology and education.",
-    content: `<h2>Agricultural Innovation in Patiala</h2>
-      <p>The Agriculture Department in Patiala has implemented several innovative programs to promote sustainable farming. This article explores the initiatives and their impact.</p>
-      <p>Key programs include:</p>
-      <ul>
-        <li>Farmer education centers with demonstration plots</li>
-        <li>Mobile soil testing laboratories</li>
-        <li>Weather prediction and crop advisory services</li>
-        <li>Direct market linkages for organic produce</li>
-      </ul>
-      <p>Early results show increased adoption of sustainable practices and improved farm incomes.</p>`,
-    date: "January 22, 2025",
-    readTime: "10 min read",
-    tags: ["Agriculture", "Sustainability", "Innovation"],
-    district: "Patiala",
-    department: "Agriculture",
-    subThemes: ["Agriculture", "Technology"],
-  },
-  {
-    id: "blog-5",
-    title: "Education Reform in Jalandhar",
-    excerpt: "A comprehensive approach to improving educational outcomes in government schools in Jalandhar district.",
-    content: `<h2>Education Reform in Jalandhar</h2>
-      <p>Jalandhar district has implemented a comprehensive education reform program that has shown promising results. This article details the approach and outcomes.</p>
-      <p>The reform includes:</p>
-      <ul>
-        <li>Teacher training and professional development programs</li>
-        <li>Technology integration in classrooms</li>
-        <li>Community engagement initiatives</li>
-        <li>Data-driven performance monitoring</li>
-      </ul>
-      <p>Student attendance has increased by 25% and learning outcomes have improved across all grade levels.</p>`,
-    date: "December 5, 2024",
-    readTime: "14 min read",
-    tags: ["Education", "Reform", "Community Engagement"],
-    district: "Jalandhar",
-    department: "Education",
-    subThemes: ["Education", "Management"],
-  },
+const subThemes = [
+  "Leadership",
+  "Management",
+  "Technology",
+  "Policy",
+  "Finance",
+  "Healthcare",
+  "Education",
+  "Agriculture",
+  "Infrastructure",
+  "Environment",
+  "Social Welfare",
+  "Governance",
 ]
 
-// Enhanced categories with district, department, and subTheme tags
+// 6 main categories with their articles
 const categories: Category[] = [
   {
     id: "1",
@@ -197,6 +86,15 @@ const categories: Category[] = [
         description: "Techniques for inspiring and engaging government employees",
         readTime: "10 min read",
         district: "Patiala",
+        department: "Personnel",
+        subThemes: ["Leadership", "Management"],
+      },
+      {
+        id: "1-4",
+        title: "Conflict Resolution in Government Settings",
+        description: "Strategies for managing disputes and building consensus",
+        readTime: "8 min read",
+        district: "Jalandhar",
         department: "Personnel",
         subThemes: ["Leadership", "Management"],
       },
@@ -235,6 +133,15 @@ const categories: Category[] = [
         department: "Personnel",
         subThemes: ["Management", "Leadership"],
       },
+      {
+        id: "2-4",
+        title: "Data-Driven Decision Making",
+        description: "Using analytics to improve government performance",
+        readTime: "13 min read",
+        district: "Patiala",
+        department: "Information Technology",
+        subThemes: ["Management", "Technology"],
+      },
     ],
   },
   {
@@ -269,6 +176,15 @@ const categories: Category[] = [
         district: "Amritsar",
         department: "Governance Reforms",
         subThemes: ["Management", "Policy"],
+      },
+      {
+        id: "3-4",
+        title: "Automation in Government Operations",
+        description: "Implementing automated solutions for routine tasks",
+        readTime: "11 min read",
+        district: "Ludhiana",
+        department: "Information Technology",
+        subThemes: ["Technology", "Management"],
       },
     ],
   },
@@ -305,6 +221,15 @@ const categories: Category[] = [
         department: "Governance Reforms",
         subThemes: ["Management", "Governance"],
       },
+      {
+        id: "4-4",
+        title: "Workload Balancing Strategies",
+        description: "Techniques for managing competing priorities and deadlines",
+        readTime: "9 min read",
+        district: "Amritsar",
+        department: "Personnel",
+        subThemes: ["Management", "Leadership"],
+      },
     ],
   },
   {
@@ -339,6 +264,15 @@ const categories: Category[] = [
         district: "Ludhiana",
         department: "Governance Reforms",
         subThemes: ["Management", "Policy"],
+      },
+      {
+        id: "5-4",
+        title: "Emergency Response Coordination",
+        description: "Managing multi-agency responses to public emergencies",
+        readTime: "12 min read",
+        district: "Patiala",
+        department: "Governance Reforms",
+        subThemes: ["Management", "Governance"],
       },
     ],
   },
@@ -375,24 +309,17 @@ const categories: Category[] = [
         department: "Rural Development & Panchayats",
         subThemes: ["Social Welfare", "Governance"],
       },
+      {
+        id: "6-4",
+        title: "Public Participation in Policy Making",
+        description: "Engaging citizens in government decision-making processes",
+        readTime: "14 min read",
+        district: "Mohali",
+        department: "Governance Reforms",
+        subThemes: ["Governance", "Policy"],
+      },
     ],
   },
-]
-
-// Define the subthemes
-const subThemes = [
-  "Leadership",
-  "Management",
-  "Technology",
-  "Policy",
-  "Finance",
-  "Healthcare",
-  "Education",
-  "Agriculture",
-  "Infrastructure",
-  "Environment",
-  "Social Welfare",
-  "Governance",
 ]
 
 // Custom Badge component
@@ -505,18 +432,6 @@ function Dropdown({ label, options, selectedValues, onChange }) {
 
       {isOpen && (
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-          <div className="p-2">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => {
-                // Filter options based on search input
-                // This would need to be implemented with state management
-              }}
-            />
-          </div>
           <ul className="py-1">
             {options.map((option) => (
               <li key={option}>
@@ -605,22 +520,8 @@ function FilterMenu({ isOpen, onClose, selectedFilters, onFilterChange, onClearF
   )
 }
 
-// ResourceCard component for unified display of resources
-function ResourceCard({ resource, onClick }) {
-  // Determine if it's a blog or category article
-  const isBlog = "excerpt" in resource
-
-  // Get appropriate data based on resource type
-  const title = resource.title
-  const description = isBlog ? resource.excerpt : resource.description
-  const tags = isBlog ? resource.tags : resource.subThemes || []
-  const district = resource.district
-  const department = resource.department
-  const readTime = resource.readTime
-  const date = isBlog ? resource.date : null
-
-  // Get icon for category
-  const Icon = !isBlog && resource.icon ? resource.icon : null
+function CategoryCard({ category, onClick }) {
+  const Icon = category.icon
 
   return (
     <div
@@ -628,75 +529,90 @@ function ResourceCard({ resource, onClick }) {
       onClick={onClick}
     >
       <div className="p-6 flex flex-col h-full">
-        {/* Title with optional icon */}
-        <div className="flex items-start gap-3 mb-2">
-          {Icon && (
-            <div className="p-2 bg-primary-50 rounded-lg shrink-0">
-              <Icon className="h-5 w-5 text-primary-600" />
-            </div>
-          )}
-          <h3 className="font-semibold text-lg text-gray-900">{title}</h3>
+        <div className="flex items-start gap-3 mb-4">
+          <div className="p-3 bg-primary-50 rounded-lg shrink-0">
+            <Icon className="h-6 w-6 text-primary-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg text-gray-900 mb-2">{category.title}</h3>
+            <p className="text-gray-600 text-sm">{category.description}</p>
+          </div>
         </div>
 
-        {/* Description */}
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">{description}</p>
-
-        {/* Tags */}
-        {tags && tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {tags.map((tag, index) => (
-              <Badge key={`${tag}-${index}`} variant="secondary">
-                {tag}
-              </Badge>
-            ))}
+        <div className="mt-auto">
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <span>{category.articles.length} resources</span>
+            <span className="text-primary-600 font-medium">View Resources →</span>
           </div>
-        )}
-
-        {/* Metadata */}
-        <div className="flex flex-wrap items-center text-xs text-gray-500 gap-x-4 gap-y-2 mt-auto">
-          {date && (
-            <div className="flex items-center">
-              <Calendar className="h-3.5 w-3.5 mr-1" />
-              {date}
-            </div>
-          )}
-
-          <div className="flex items-center">
-            <Clock className="h-3.5 w-3.5 mr-1" />
-            {readTime}
-          </div>
-
-          {district && (
-            <div className="flex items-center">
-              <Tag className="h-3.5 w-3.5 mr-1" />
-              {district}
-            </div>
-          )}
-
-          {department && (
-            <div className="flex items-center">
-              <Tag className="h-3.5 w-3.5 mr-1" />
-              {department}
-            </div>
-          )}
         </div>
       </div>
     </div>
   )
 }
 
-// ResourceDetail component
-function ResourceDetail({ resource, onBack }) {
-  // Determine if it's a blog or an article from a category
-  const isBlog = "content" in resource
+function ArticleCard({ article, onSave, onView }) {
+  return (
+    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-3">
+          <h4 className="font-semibold text-lg text-gray-900 flex-1 pr-4">{article.title}</h4>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onSave(article.id)
+            }}
+            className={`p-2 rounded-full transition-colors ${
+              article.saved ? "bg-primary-100 text-primary-600" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            <Bookmark className="h-4 w-4" />
+          </button>
+        </div>
 
-  const title = resource.title
-  const content = isBlog ? resource.content : resource.fullContent
-  const tags = isBlog ? resource.tags : resource.subThemes || []
-  const district = resource.district
-  const department = resource.department
-  const date = isBlog ? resource.date : resource.publishDate
-  const readTime = resource.readTime
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{article.description}</p>
+
+        {article.subThemes && article.subThemes.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {article.subThemes.slice(0, 2).map((theme, index) => (
+              <Badge key={`${theme}-${index}`} variant="secondary">
+                {theme}
+              </Badge>
+            ))}
+            {article.subThemes.length > 2 && <Badge variant="default">+{article.subThemes.length - 2} more</Badge>}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center text-xs text-gray-500 gap-x-4 gap-y-2 mb-4">
+          <div className="flex items-center">
+            <Clock className="h-3.5 w-3.5 mr-1" />
+            {article.readTime}
+          </div>
+
+          {article.district && (
+            <div className="flex items-center">
+              <Tag className="h-3.5 w-3.5 mr-1" />
+              {article.district}
+            </div>
+          )}
+
+          {article.department && (
+            <div className="flex items-center">
+              <Tag className="h-3.5 w-3.5 mr-1" />
+              {article.department}
+            </div>
+          )}
+        </div>
+
+        <Button variant="primary" size="sm" onClick={() => onView(article)} className="w-full">
+          Read Article
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function ArticleDetail({ article, onBack }) {
+  const content = expandedArticles[article.id]
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -706,61 +622,48 @@ function ResourceDetail({ resource, onBack }) {
           Back to resources
         </button>
 
-        <h1 className="font-bold text-2xl text-gray-900 mb-4">{title}</h1>
+        <h1 className="font-bold text-2xl text-gray-900 mb-4">{article.title}</h1>
 
         <div className="flex flex-wrap items-center text-sm text-gray-500 gap-x-4 gap-y-2 mb-6">
-          {date && (
+          {content?.publishDate && (
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
-              {date}
+              {content.publishDate}
             </div>
           )}
 
           <div className="flex items-center">
             <Clock className="h-4 w-4 mr-1" />
-            {readTime}
+            {article.readTime}
           </div>
 
-          {district && (
+          {article.district && (
             <div className="flex items-center">
               <Tag className="h-4 w-4 mr-1" />
-              {district}
+              {article.district}
             </div>
           )}
 
-          {department && (
+          {article.department && (
             <div className="flex items-center">
               <Tag className="h-4 w-4 mr-1" />
-              {department}
+              {article.department}
             </div>
           )}
         </div>
 
-        {tags && tags.length > 0 && (
+        {article.subThemes && article.subThemes.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
-            {tags.map((tag, index) => (
-              <Badge key={`${tag}-${index}`} variant="secondary">
-                {tag}
+            {article.subThemes.map((theme, index) => (
+              <Badge key={`${theme}-${index}`} variant="secondary">
+                {theme}
               </Badge>
             ))}
           </div>
         )}
 
-        <div className="flex space-x-2 mb-8">
-          <Button variant="outline" size="sm" icon={<Download className="h-4 w-4" />}>
-            Download
-          </Button>
-          <Button variant="outline" size="sm" icon={<Share2 className="h-4 w-4" />}>
-            Share
-          </Button>
-          <Button variant="outline" size="sm" icon={<Bookmark className="h-4 w-4" />}>
-            Save
-          </Button>
-        </div>
-
         <div className="prose max-w-none">
-          {/* Render content as HTML - in a real app, use a proper markdown/HTML renderer */}
-          <div dangerouslySetInnerHTML={{ __html: content || "" }} />
+          <div dangerouslySetInnerHTML={{ __html: content?.fullContent || "<p>Content not available.</p>" }} />
         </div>
       </div>
     </div>
@@ -770,34 +673,30 @@ function ResourceDetail({ resource, onBack }) {
 export function ResourceHub() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [selectedResource, setSelectedResource] = useState(null)
-  const [selectedResourceType, setSelectedResourceType] = useState(null) // "blog", "article", or "category"
+  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedArticle, setSelectedArticle] = useState(null)
+  const [savedArticles, setSavedArticles] = useState(new Set())
 
-  // Filter state
   const [selectedFilters, setSelectedFilters] = useState({
     districts: [] as string[],
     departments: [] as string[],
     subThemes: [] as string[],
   })
 
-  // Count active filters
   const activeFilterCount =
     selectedFilters.districts.length + selectedFilters.departments.length + selectedFilters.subThemes.length
 
-  // Handle filter changes
   const handleFilterChange = (filterType: "districts" | "departments" | "subThemes", value: string) => {
     setSelectedFilters((prev) => {
       const currentValues = [...prev[filterType]]
       const index = currentValues.indexOf(value)
 
       if (index === -1) {
-        // Add the value if it doesn't exist
         return {
           ...prev,
           [filterType]: [...currentValues, value],
         }
       } else {
-        // Remove the value if it exists
         currentValues.splice(index, 1)
         return {
           ...prev,
@@ -807,7 +706,6 @@ export function ResourceHub() {
     })
   }
 
-  // Clear all filters
   const clearFilters = () => {
     setSelectedFilters({
       districts: [],
@@ -816,91 +714,66 @@ export function ResourceHub() {
     })
   }
 
-  // Prepare all resources for unified display
-  const allResources = [
-    // Add blogs
-    ...blogs.map((blog) => ({
-      ...blog,
-      type: "blog",
-    })),
+  const handleSaveArticle = (articleId: string) => {
+    setSavedArticles((prev) => {
+      const newSaved = new Set(prev)
+      if (newSaved.has(articleId)) {
+        newSaved.delete(articleId)
+      } else {
+        newSaved.add(articleId)
+      }
 
-    // Add categories
-    ...categories.map((category) => ({
-      ...category,
-      type: "category",
-    })),
+      // Save to localStorage
+      localStorage.setItem("savedArticles", JSON.stringify(Array.from(newSaved)))
 
-    // Add articles from categories
-    ...categories.flatMap((category) =>
-      category.articles.map((article) => ({
-        ...article,
-        type: "article",
-        categoryId: category.id,
-        categoryTitle: category.title,
-      })),
-    ),
-  ]
+      return newSaved
+    })
+  }
 
-  // Filter resources based on search and filters
-  const filteredResources = allResources.filter((resource) => {
-    // First filter by search query
-    let matchesSearch = false
-
-    if (resource.title?.toLowerCase().includes(searchQuery.toLowerCase())) {
-      matchesSearch = true
-    } else if (resource.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
-      matchesSearch = true
-    } else if (resource.excerpt?.toLowerCase().includes(searchQuery.toLowerCase())) {
-      matchesSearch = true
-    } else if (resource.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))) {
-      matchesSearch = true
-    } else if (resource.subThemes?.some((theme) => theme.toLowerCase().includes(searchQuery.toLowerCase()))) {
-      matchesSearch = true
+  // Load saved articles from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("savedArticles")
+    if (saved) {
+      setSavedArticles(new Set(JSON.parse(saved)))
     }
+  }, [])
 
-    if (!matchesSearch) return false
+  const filterArticles = (articles: Article[]) => {
+    return articles.filter((article) => {
+      // Search filter
+      const matchesSearch =
+        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.subThemes?.some((theme) => theme.toLowerCase().includes(searchQuery.toLowerCase()))
 
-    // If no filters are selected, show all resources
-    if (activeFilterCount === 0) return true
+      if (!matchesSearch) return false
 
-    // Check if resource matches the selected filters
-    const matchesDistrict =
-      selectedFilters.districts.length === 0 ||
-      (resource.district && selectedFilters.districts.includes(resource.district))
+      // If no filters selected, show all
+      if (activeFilterCount === 0) return true
 
-    const matchesDepartment =
-      selectedFilters.departments.length === 0 ||
-      (resource.department && selectedFilters.departments.includes(resource.department))
+      // Apply filters
+      const matchesDistrict =
+        selectedFilters.districts.length === 0 ||
+        (article.district && selectedFilters.districts.includes(article.district))
 
-    const matchesSubTheme =
-      selectedFilters.subThemes.length === 0 ||
-      (resource.subThemes && resource.subThemes.some((theme) => selectedFilters.subThemes.includes(theme)))
+      const matchesDepartment =
+        selectedFilters.departments.length === 0 ||
+        (article.department && selectedFilters.departments.includes(article.department))
 
-    return matchesDistrict && matchesDepartment && matchesSubTheme
-  })
+      const matchesSubTheme =
+        selectedFilters.subThemes.length === 0 ||
+        (article.subThemes && article.subThemes.some((theme) => selectedFilters.subThemes.includes(theme)))
 
-  // Handle resource selection
-  const handleResourceClick = (resource) => {
-    setSelectedResource(resource)
-    setSelectedResourceType(resource.type)
+      return matchesDistrict && matchesDepartment && matchesSubTheme
+    })
   }
 
-  // Get article content from expanded articles data
-  const getArticleContent = (articleId) => {
-    return expandedArticles[articleId]
-  }
-
-  // Reset resource selection
-  const handleBackClick = () => {
-    setSelectedResource(null)
-    setSelectedResourceType(null)
-  }
-
-  // Handle category selection to show its articles
-  const handleCategoryClick = (category) => {
-    setSelectedResource(category)
-    setSelectedResourceType("category")
-  }
+  const filteredCategories = categories
+    .map((category) => ({
+      ...category,
+      articles: filterArticles(category.articles),
+    }))
+    .filter((category) => category.articles.length > 0)
 
   return (
     <div className="space-y-8 pb-24">
@@ -911,7 +784,7 @@ export function ResourceHub() {
         </p>
       </div>
 
-      {/* Search bar with filter button */}
+      {/* Search and Filter */}
       <div className="flex items-center justify-between gap-4 px-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -936,7 +809,6 @@ export function ResourceHub() {
         </button>
       </div>
 
-      {/* Filter menu */}
       <FilterMenu
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
@@ -945,89 +817,45 @@ export function ResourceHub() {
         onClearFilters={clearFilters}
       />
 
-      {/* Main content */}
+      {/* Main Content */}
       <div className="px-4">
-        {selectedResourceType === "blog" ? (
-          // Blog detail view
-          <ResourceDetail resource={selectedResource} onBack={handleBackClick} />
-        ) : selectedResourceType === "article" ? (
-          // Article detail view
-          <ResourceDetail
-            resource={{
-              ...selectedResource,
-              ...getArticleContent(selectedResource.id),
-            }}
-            onBack={handleBackClick}
-          />
-        ) : selectedResourceType === "category" ? (
-          // Category detail view with its articles
+        {selectedArticle ? (
+          <ArticleDetail article={selectedArticle} onBack={() => setSelectedArticle(null)} />
+        ) : selectedCategory ? (
           <div>
             <button
-              onClick={handleBackClick}
+              onClick={() => setSelectedCategory(null)}
               className="mb-6 text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to resources
+              Back to categories
             </button>
 
             <div className="mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{selectedResource.title}</h2>
-              <p className="mt-2 text-gray-600 text-sm sm:text-base">{selectedResource.description}</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{selectedCategory.title}</h2>
+              <p className="mt-2 text-gray-600 text-sm sm:text-base">{selectedCategory.description}</p>
             </div>
 
-            {/* Articles in this category */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {selectedResource.articles
-                .filter((article) => {
-                  // Apply filters to articles
-                  const matchesDistrict =
-                    selectedFilters.districts.length === 0 ||
-                    (article.district && selectedFilters.districts.includes(article.district))
-
-                  const matchesDepartment =
-                    selectedFilters.departments.length === 0 ||
-                    (article.department && selectedFilters.departments.includes(article.department))
-
-                  const matchesSubTheme =
-                    selectedFilters.subThemes.length === 0 ||
-                    (article.subThemes && article.subThemes.some((theme) => selectedFilters.subThemes.includes(theme)))
-
-                  return matchesDistrict && matchesDepartment && matchesSubTheme
-                })
-                .map((article) => (
-                  <ResourceCard
-                    key={article.id}
-                    resource={{
-                      ...article,
-                      type: "article",
-                    }}
-                    onClick={() =>
-                      handleResourceClick({
-                        ...article,
-                        type: "article",
-                      })
-                    }
-                  />
-                ))}
+              {filterArticles(selectedCategory.articles).map((article) => (
+                <ArticleCard
+                  key={article.id}
+                  article={{
+                    ...article,
+                    saved: savedArticles.has(article.id),
+                  }}
+                  onSave={handleSaveArticle}
+                  onView={setSelectedArticle}
+                />
+              ))}
             </div>
           </div>
         ) : (
-          // Resources grid view
           <div>
-            {filteredResources.length > 0 ? (
+            {filteredCategories.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredResources.map((resource, index) => (
-                  <ResourceCard
-                    key={`${resource.type}-${resource.id}-${index}`}
-                    resource={resource}
-                    onClick={() => {
-                      if (resource.type === "category") {
-                        handleCategoryClick(resource)
-                      } else {
-                        handleResourceClick(resource)
-                      }
-                    }}
-                  />
+                {filteredCategories.map((category) => (
+                  <CategoryCard key={category.id} category={category} onClick={() => setSelectedCategory(category)} />
                 ))}
               </div>
             ) : (
