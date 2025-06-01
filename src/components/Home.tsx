@@ -3,25 +3,25 @@
 import { useEffect, useState } from "react"
 import {
   Calendar,
-  Users,
   FileText,
   BarChart,
   ChevronRight,
   MapPin,
   ArrowUpRight,
-  MessageSquare,
   BookOpen,
-  Zap,
   Book,
   CheckSquare,
   LayoutGrid,
   Target,
+  Award,
+  Pin,
 } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import { differenceInDays } from "date-fns"
 import { Card, CardContent, CardHeader, CardFooter } from "./ui/Card"
 import { Badge } from "./ui/Badge"
 import { Button } from "./ui/Button"
+import { badgeData } from "../lib/badge-data"
 
 const BUDDY_PAIRS: Record<string, string> = {
   "test@punjab.gov.in": "test2@punjab.gov.in",
@@ -47,11 +47,14 @@ export function Home() {
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [stats, setStats] = useState({
-    totalMentors: 0,
+    newBadgesEarned: 0,
     upcomingMeetings: 0,
     resourcesAccessed: 0,
     reflectionsSubmitted: 0,
   })
+
+  // Get new badges (earned in the last 7 days)
+  const newBadges = badgeData.filter((badge) => badge.earned && badge.daysAgo <= 7)
 
   useEffect(() => {
     fetchBuddyInfo()
@@ -72,10 +75,11 @@ export function Home() {
         setBuddyName(BUDDY_NAMES[buddyEmail])
       }
 
-      // Simulate fetching stats -- need to connect to db
+      // Simulate fetching stats
+      // In a real app, you would fetch this from your database
       setTimeout(() => {
         setStats({
-          totalMentors: 12,
+          newBadgesEarned: newBadges.length, // Use consistent count
           upcomingMeetings: 2,
           resourcesAccessed: 28,
           reflectionsSubmitted: 5,
@@ -154,22 +158,6 @@ export function Home() {
                 your professional development.
               </p>
             </div>
-
-            <div
-              className="sm:ml-6 mt-4 sm:mt-0 animate-slide-up bg-white/10 backdrop-blur-sm px-4 py-3 rounded-lg border border-white/20"
-              style={{ animationDelay: "150ms" }}
-            >
-              <div className="flex items-center text-white">
-                <Zap className="h-5 w-5 mr-2 text-yellow-300" />
-                <span className="font-medium">Overall Progress</span>
-              </div>
-              <div className="mt-2 flex items-center">
-                <div className="flex-1 bg-white/20 rounded-full h-2.5 mr-3 w-32">
-                  <div className="bg-yellow-300 h-2.5 rounded-full" style={{ width: `${completionPercentage}%` }} />
-                </div>
-                <span className="text-white text-sm font-medium">{completionPercentage}%</span>
-              </div>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -178,12 +166,12 @@ export function Home() {
               style={{ animationDelay: "200ms" }}
             >
               <div className="flex items-center">
-                <div className="p-2 rounded-full bg-blue-500/20 mr-3">
-                  <Users className="h-5 w-5 text-blue-300" />
+                <div className="p-2 rounded-full bg-yellow-500/20 mr-3">
+                  <Award className="h-5 w-5 text-yellow-300" />
                 </div>
                 <div className="text-white">
-                  <p className="text-xs text-blue-100">Active Mentors</p>
-                  <p className="text-xl font-bold">{stats.totalMentors}</p>
+                  <p className="text-xs text-yellow-100">New Badges Earned</p>
+                  <p className="text-xl font-bold">{stats.newBadgesEarned}</p>
                 </div>
               </div>
             </div>
@@ -236,9 +224,86 @@ export function Home() {
         </div>
       </div>
 
+      {/* New Badges Section */}
+      {newBadges.length > 0 && (
+        <div className="space-y-4 animate-slide-up" style={{ animationDelay: "375ms" }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Award className="h-5 w-5 text-primary-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">New Achievements</h3>
+            </div>
+            <button
+              className="text-primary-600 text-sm font-medium flex items-center"
+              onClick={() => handleNavigation("badges")}
+            >
+              View all badges
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </button>
+          </div>
+
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4 mb-4">
+            <p className="text-primary-800 font-medium">
+              🎉 Congratulations! You've earned {newBadges.length} new badge{newBadges.length > 1 ? "s" : ""}. Visit the
+              Badges page to celebrate your achievement!
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {newBadges.map((badge) => (
+              <Card
+                key={badge.id}
+                variant="elevated"
+                className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-white border border-gray-200 shadow-sm"
+                onClick={() => handleNavigation("badges")}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-2xl">{badge.emoji}</div>
+                      <h4 className="font-semibold text-gray-900 text-lg">{badge.title}</h4>
+                    </div>
+                    <Badge
+                      variant="primary"
+                      className="text-xs bg-blue-100 text-blue-800 border border-blue-200 rounded-md px-2 py-1"
+                    >
+                      NEW!
+                    </Badge>
+                  </div>
+
+                  <p className="text-gray-600 text-sm mb-4 leading-relaxed">{badge.description}</p>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">
+                      Earned{" "}
+                      {badge.daysAgo === 0 ? "today" : badge.daysAgo === 1 ? "yesterday" : `${badge.daysAgo} days ago`}
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Meeting Section - Changed from 2-column to full width */}
+
       <div className="grid grid-cols-1 gap-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Calendar className="h-5 w-5 text-primary-600 mr-2" />
+            <h3 className="text-lg font-semibold text-gray-900">Upcoming Meetings</h3>
+          </div>
+          <button
+            className="text-primary-600 text-sm font-medium flex items-center"
+            onClick={() => handleNavigation("#")}
+          >
+            View all meetings
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </button>
+        </div>
         {/* Next Meeting Card */}
+
         <Card variant="elevated" className="animate-slide-up" style={{ animationDelay: "400ms" }}>
           <CardHeader
             title={
@@ -303,135 +368,13 @@ export function Home() {
         </Card>
       </div>
 
-      {/* Achievement Badges Section */}
-      <div className="space-y-4 animate-slide-up" style={{ animationDelay: "450ms" }}>
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Achievements</h3>
-          <button
-            className="text-primary-600 text-sm font-medium flex items-center hover:text-primary-700 transition-colors"
-            onClick={() => handleNavigation("badges")}
-          >
-            View All Badges
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Latest Badge - Efficiency Expert */}
-          <Card
-            variant="elevated"
-            className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200"
-            onClick={() => handleNavigation("badges")}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-3">
-                <div className="text-3xl animate-bounce">🏅</div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-amber-800">Efficiency Expert</h4>
-                    <Badge variant="primary" className="text-xs bg-amber-100 text-amber-800 border-amber-200">
-                      NEW!
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-amber-700 mb-3">
-                    🎉 Congratulations! You've reduced process days by 20% from last month. Outstanding work!
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                      Earned 3 days ago
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-amber-600 group-hover:translate-x-1 transition-transform duration-300" />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Second Latest Badge - Fast Tracker */}
-          <Card
-            variant="elevated"
-            className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
-            onClick={() => handleNavigation("badges")}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-3">
-                <div className="text-3xl">⚡</div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-green-800">Fast Tracker</h4>
-                    <div className="flex items-center">
-                      <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-xs text-green-600">Recent</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-green-700 mb-3">
-                    🚀 Excellent! You completed document upload stage in record time compared to peers.
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Earned 5 days ago
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-green-600 group-hover:translate-x-1 transition-transform duration-300" />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Badge Progress Indicator */}
-        <Card variant="elevated" className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-4">
-              <div className="flex-shrink-0">
-                <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Target className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-blue-900 mb-1">Next Badge: Speed Demon</h4>
-                <p className="text-sm text-blue-700 mb-2">
-                  You're 80% of the way there! Process 5 more applications quickly to unlock this badge.
-                </p>
-                <div className="flex items-center space-x-2">
-                  <div className="flex-1 bg-blue-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: "80%" }}
-                    />
-                  </div>
-                  <span className="text-xs font-medium text-blue-700">4/5</span>
-                </div>
-              </div>
-              <div className="flex-shrink-0">
-                <button
-                  className="text-blue-600 hover:text-blue-700 transition-colors"
-                  onClick={() => handleNavigation("badges")}
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Motivational Message */}
-        <div className="text-center p-4 bg-gradient-to-r from-primary-50 to-teal-50 rounded-lg border border-primary-200">
-          <div className="flex items-center justify-center mb-2">
-            <div className="text-2xl mr-2">🌟</div>
-            <h4 className="font-semibold text-primary-800">Keep up the excellent work!</h4>
-          </div>
-          <p className="text-sm text-primary-700">
-            Your dedication to improving service delivery is making a real difference. You've earned{" "}
-            <span className="font-semibold">4 badges</span> this month!
-          </p>
-        </div>
-      </div>
-
       {/* Quick Access Section */}
       <div className="space-y-4 animate-slide-up" style={{ animationDelay: "550ms" }}>
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Quick Access</h3>
+          <div className="flex items-center">
+            <Pin className="h-5 w-5 text-primary-600 mr-2" />
+            <h3 className="text-lg font-semibold text-gray-900">Quick Access</h3>
+          </div>
           <button className="text-primary-600 text-sm font-medium flex items-center">
             {/* Customize Dashboard */}
             <LayoutGrid className="h-4 w-4 ml-1" />
@@ -501,28 +444,7 @@ export function Home() {
               </div>
             </CardContent>
           </Card>
-{/* 
-          <Card
-            variant="elevated"
-            className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-            onClick={() => handleNavigation("whatsapp")}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start">
-                <div className="p-2 rounded-full bg-purple-100 mr-3 group-hover:bg-purple-200 transition-colors duration-300">
-                  <MessageSquare className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900">WhatsApp Settings</h4>
-                  <p className="text-xs text-gray-500 mt-1">Configure communication preferences</p>
-                </div>
-              </div>
-              <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
-                <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all duration-300" />
-              </div>
-            </CardContent>
-          </Card>
-           */}
+
           <Card
             variant="elevated"
             className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer"
@@ -549,6 +471,7 @@ export function Home() {
   )
 }
 
+// Add keyframe animations to the index.css file
 const styleTag = document.createElement("style")
 styleTag.innerHTML = `
   @keyframes progressAnim {
@@ -559,6 +482,19 @@ styleTag.innerHTML = `
   @keyframes progressAnimation {
     from { stroke-dashoffset: 251.2; }
     to { stroke-dashoffset: ${251.2 - 251.2 * (3 / 5)}; }
+  }
+  
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 `
 document.head.appendChild(styleTag)
