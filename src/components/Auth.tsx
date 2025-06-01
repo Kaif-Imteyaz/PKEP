@@ -114,7 +114,7 @@ export function Auth() {
             <span className="text-xs text-gray-400 mb-2">Powered by</span>
             <div className="flex justify-center items-center space-x-4">
               <img
-                src="/dgr.png"
+                src="/punjab-gov.svg"
                 alt="Department of Good Governance and Information Technology, Punjab"
                 className="h-16 w-auto"
               />
